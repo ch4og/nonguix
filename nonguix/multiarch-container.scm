@@ -313,6 +313,7 @@ in a sandboxed FHS environment."
                                  ;; Matching all ^XDG_ vars causes issues
                                  ;; discussed in 80decf05.
                                  "^XDG_CURRENT_DESKTOP$"
+                                 "^XDG_DATA_DIRS$"
                                  "^XDG_DATA_HOME$"
                                  "^XDG_RUNTIME_DIR$"
                                  "^XDG_SESSION_(CLASS|TYPE)$"
@@ -600,6 +601,13 @@ application."
              (setenv "LD_LIBRARY_PATH"
                      (string-append "/lib64:/lib:/lib64/nss:/lib/nss:"
                                     "/lib64/vdpau:/lib/vdpau"))
+             ;; Appending XDG_DATA_DIRS to overcome issue discussed at 80decf05.
+             ;; Also adding /run/current-system/profile/share in case it's not there yet.
+             (setenv "XDG_DATA_DIRS"
+                     (string-join (filter string?
+                                          (list (getenv "XDG_DATA_DIRS")
+                                                "/run/current-system/profile/share"
+                                                "/usr/share")) ":"))
              ;; Fix controller detection.
              ;; See <https://gitlab.com/nonguix/nonguix/-/issues/384>
              (setenv "SDL_JOYSTICK_DISABLE_UDEV" "1")
