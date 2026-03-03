@@ -45,6 +45,7 @@
   #:use-module (guix utils)
   #:use-module (guix download)
   #:use-module (guix gexp)
+  #:use-module (guix ui)
   #:use-module (guix git-download)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
@@ -178,29 +179,46 @@ some freedo package or an output of package-version procedure."
        "The unmodified Linux kernel, including nonfree blobs, for running Guix System
 on hardware which requires nonfree software to function."))))
 
+(define (safe-corrupt-linux symbol . args)
+  "Apply corrupt-linux to the given kernel SYMBOL if it exists.
+If SYMBOL is not defined in this Guix revision, falls back to `linux-libre`.
+This allows (nongnu packages linux) to evaluate safely on older Guix commits.
+Takes the same arguments as corrupt-linux, except the kernel argument should
+be passed as a symbol rather than as a package."
+  (let ((target (and symbol
+                     (defined? symbol)
+                     (eval symbol (interaction-environment)))))
+    (if target
+        (apply corrupt-linux target args)
+        (begin
+          (warning (G_ "Nonguix: ~a is not available in this Guix revision.  \
+Using linux-libre as a replacement.~%")
+                   symbol)
+          (apply corrupt-linux linux-libre args)))))
+
 (define-public linux-6.19
-  (corrupt-linux linux-libre-6.19))
+  (safe-corrupt-linux 'linux-libre-6.19))
 
 (define-public linux-6.18
-  (corrupt-linux linux-libre-6.18))
+  (safe-corrupt-linux 'linux-libre-6.18))
 
 (define-public linux-6.12
-  (corrupt-linux linux-libre-6.12))
+  (safe-corrupt-linux 'linux-libre-6.12))
 
 (define-public linux-6.6
-  (corrupt-linux linux-libre-6.6))
+  (safe-corrupt-linux 'linux-libre-6.6))
 
 (define-public linux-6.1
-  (corrupt-linux linux-libre-6.1))
+  (safe-corrupt-linux 'linux-libre-6.1))
 
 (define-public linux-5.15
-  (corrupt-linux linux-libre-5.15))
+  (safe-corrupt-linux 'linux-libre-5.15))
 
 (define-public linux-5.10
-  (corrupt-linux linux-libre-5.10))
+  (safe-corrupt-linux 'linux-libre-5.10))
 
 (define-public linux-5.4
-  (corrupt-linux linux-libre-5.4))
+  (safe-corrupt-linux 'linux-libre-5.4))
 
 (define-public linux linux-6.18)
 ;; linux-lts points to the *newest* released long-term support version.
