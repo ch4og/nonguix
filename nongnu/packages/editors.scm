@@ -8,6 +8,7 @@
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module ((guix licenses) :prefix license:)
+  #:use-module ((guix build-system glib-or-gtk) #:prefix gtk-bs:)
   #:use-module (nonguix build-system chromium-binary)
   #:use-module (ice-9 match))
 
@@ -41,8 +42,13 @@
            #:substitutable? #f
            #:wrapper-plan
            #~'(("opt/vscodium/codium" (("out" "/opt/vscodium"))))
+           #:imported-modules
+           `(,@gtk-bs:%glib-or-gtk-build-system-modules
+             ,@%chromium-binary-build-system-modules)
            #:phases
-           #~(modify-phases %standard-phases
+           #~(begin
+               (use-modules ((guix build glib-or-gtk-build-system) #:prefix gtk:))
+               (modify-phases %standard-phases
                (replace 'unpack
                  (lambda* (#:key source #:allow-other-keys)
                    (mkdir-p "opt/vscodium")
@@ -83,7 +89,9 @@
                       #:startup-w-m-class "Code"
                       #:comment
                       '(("en" "Code Editing. Redefined.")
-                        (#f "Code Editing. Redefined.")))))))))
+                        (#f "Code Editing. Redefined."))))))
+               (add-after 'install-wrapper 'glib-or-gtk-wrap
+                 (assoc-ref gtk:%standard-phases 'glib-or-gtk-wrap))))))
     (supported-systems '("armhf-linux" "aarch64-linux" "x86_64-linux"))
     (native-inputs
      (list tar))
