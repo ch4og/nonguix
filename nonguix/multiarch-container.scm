@@ -349,6 +349,7 @@ in a sandboxed FHS environment."
                           ;; OpenHMD with an Oculus Rift CV1.
                           "/sys"
                           ,@(exists-> "/var/run/dbus")
+                          ,@(exists-> "/run/dbus") ; Needed for Steam dbus access.
                           #$@(ngc-exposed container)))
                 ;; /dev/hidraw is needed for SteamVR to access the HMD, although here we
                 ;; share all hidraw devices. Instead we could filter to only share specific
